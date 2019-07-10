@@ -112,10 +112,11 @@ class MailMerge(object):
         zi = self.zip.getinfo(fn)
         return zi, etree.parse(self.zip.open(zi))
 
-    def write(self, file):
+    def write(self, file, erase_empty_fields = True):
         # Replace all remaining merge fields with empty values
-        for field in self.get_merge_fields():
-            self.merge(**{field: ''})
+        if erase_empty_fields:
+            for field in self.get_merge_fields():
+                self.merge(**{field: ''})
 
         with ZipFile(file, 'w', ZIP_DEFLATED) as output:
             for zi in self.zip.filelist:
@@ -164,14 +165,14 @@ class MailMerge(object):
             tag = root.tag
             if tag == '{%(w)s}ftr' % NAMESPACES or tag == '{%(w)s}hdr' % NAMESPACES:
                 continue
-		
+        
             if sepClass == 'section':
 
                 #FINDING FIRST SECTION OF THE DOCUMENT
                 firstSection = root.find("w:body/w:p/w:pPr/w:sectPr", namespaces=NAMESPACES)
                 if firstSection == None:
                     firstSection = root.find("w:body/w:sectPr", namespaces=NAMESPACES)
-			
+            
                 #MODIFY TYPE ATTRIBUTE OF FIRST SECTION FOR MERGING
                 nextPageSec = deepcopy(firstSection)
                 for child in nextPageSec:
